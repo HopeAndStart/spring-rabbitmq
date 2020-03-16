@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    <!--配置连接工厂-->
+    <rabbit:connection-factory id="consumerConnectionFactory" host="${rabbitmq.host}" port="${rabbitmq.port}"
+                               username="${rabbitmq.username}" password="${rabbitmq.password}" channel-cache-size="30"
+                               connection-name-strategy="consumerNameStrategy"/>
+
+    <!--配置连接命名工厂-->
+    <bean id="consumerNameStrategy"
+          class="org.springframework.amqp.rabbit.connection.SimplePropertyValueConnectionNameStrategy">
+        <constructor-arg name="propertyName" value="email-consumer"/>
+    </bean>
+
+    <!--配置队列-->
+    <rabbit:queue id="listenerQueue" name="provider.queue"/>
+
+    <!--配置监听器-->
+    <rabbit:listener-container connection-factory="consumerConnectionFactory">
+        <rabbit:listener queues="listenerQueue" ref="rabbitMqConsumer" method="consumerMessage"/>
+    </rabbit:listener-container>
+
+
+    <!--配置模板-->
+    <rabbit:template id="consumerRabbitTemplate" connection-factory="consumerConnectionFactory" message-converter="jsonMessageConverter"/>
+
+    <!--配置序列化与反序列化-->
+    <bean id="jsonMessageConverter"
+          class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"/>
+
+</beans>

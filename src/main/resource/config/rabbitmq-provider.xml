@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/rabbit
+       http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    <!--配置连接工厂-->
+    <rabbit:connection-factory id="providerConnectionFactory" host="${rabbitmq.host}" port="${rabbitmq.port}"
+                               username="${rabbitmq.username}" password="${rabbitmq.password}" channel-cache-size="30"
+                               connection-name-strategy="simplePropertyValueConnectionNameStrategy"/>
+
+    <bean id="cachingConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <property name="channelCheckoutTimeout" value="10"/>
+    </bean>
+
+    <!--配置连接命名工厂-->
+    <bean id="simplePropertyValueConnectionNameStrategy"
+          class="org.springframework.amqp.rabbit.connection.SimplePropertyValueConnectionNameStrategy">
+        <constructor-arg name="propertyName" value="email-provider"/>
+    </bean>
+
+    <!--定义队列-->
+    <rabbit:queue id="providerQueue" name="provider.queue" durable="true" auto-delete="false" auto-declare="true"/>
+
+    <!--定义交换器-->
+    <rabbit:direct-exchange id="providerDirectExchange" name="provider.exchange" auto-declare="true" auto-delete="false"
+                            durable="true">
+        <rabbit:bindings>
+            <rabbit:binding key="email.provider" queue="providerQueue"></rabbit:binding>
+        </rabbit:bindings>
+    </rabbit:direct-exchange>
+
+    <!--定义管理器-->
+    <rabbit:admin connection-factory="providerConnectionFactory"/>
+
+    <!--定义模板-->
+    <rabbit:template id="providerRabbitTemplate"  connection-factory="providerConnectionFactory" message-converter="jsonMessageConverter"/>
+
+    <!--配置序列化与反序列化-->
+    <bean id="jsonMessageConverter"
+          class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"/>
+
+</beans>
