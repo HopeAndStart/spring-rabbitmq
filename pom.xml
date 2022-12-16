@@ -10,7 +10,7 @@
 
     <properties>
         <!--Spring版本控制-->
-        <spring-version>4.3.11.RELEASE</spring-version>
+        <spring-version>5.2.20.RELEASE</spring-version>
         <!--RabbitMQ依赖版本控制-->
         <rabbit-version>2.1.11.RELEASE</rabbit-version>
     </properties>
